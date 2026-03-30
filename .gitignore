@@ -1,0 +1,27 @@
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor settings
+.idea/
+.vscode/
+
+# Local runtime artifacts
+*.log
+*.pid
+*.tmp
+*.bak
+
+# Python caches
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node or package manager artifacts
+node_modules/
+
+# Build or export folders
+build/
+dist/
+out/

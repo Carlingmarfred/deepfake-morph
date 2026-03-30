@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deepfake OT Morph Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">Optimal Transport Deepfake</p>
+      <div class="hero-copy">
+        <div>
+          <h1>Deepfake OT Morph Lab</h1>
+          <p class="lead">
+            Capture two faces, solve an exact transport plan with linear programming, and render a structure-aware morph
+            that stays anchored to real facial geometry.
+          </p>
+        </div>
+        <div class="hero-note">
+          <p class="note-title">Pipeline</p>
+          <p>Camera or upload -> face landmarks -> transport simplex -> piecewise affine warp -> PNG export</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-grid">
+      <section class="panel controls-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Controls</p>
+            <h2>Morph Settings</h2>
+          </div>
+          <div id="statusBadge" class="status-badge info">Loading model...</div>
+        </div>
+
+        <div class="control-stack">
+          <label class="range-group" for="blendSlider">
+            <span>Blend Ratio</span>
+            <strong id="blendValue">50%</strong>
+          </label>
+          <input id="blendSlider" type="range" min="0" max="100" value="50">
+
+          <div class="button-row">
+            <button id="runMorphButton" class="primary-button">Build Morph</button>
+            <button id="swapFacesButton" class="secondary-button">Swap Faces</button>
+            <button id="downloadButton" class="ghost-button" disabled>Download PNG</button>
+          </div>
+
+          <div id="statusText" class="status-text">
+            Initializing face landmark detector. The first load downloads MediaPipe assets.
+          </div>
+        </div>
+      </section>
+
+      <section class="capture-grid">
+        <article class="panel face-panel" data-slot="source">
+          <div class="panel-header compact">
+            <div>
+              <p class="section-kicker">Face A</p>
+              <h2>Source</h2>
+            </div>
+            <span class="slot-chip">Input 1</span>
+          </div>
+
+          <div class="preview-frame">
+            <canvas id="sourcePreview" width="420" height="420"></canvas>
+          </div>
+
+          <div class="panel-actions">
+            <label class="secondary-button file-label">
+              <input id="sourceUpload" type="file" accept="image/*" capture="user">
+              Upload
+            </label>
+            <button class="ghost-button" data-open-camera="source">Use Camera</button>
+            <button class="ghost-button" data-clear-slot="source">Clear</button>
+          </div>
+
+          <p class="panel-help">Drop an image here, upload, or take a photo with your webcam.</p>
+        </article>
+
+        <article class="panel face-panel" data-slot="target">
+          <div class="panel-header compact">
+            <div>
+              <p class="section-kicker">Face B</p>
+              <h2>Target</h2>
+            </div>
+            <span class="slot-chip">Input 2</span>
+          </div>
+
+          <div class="preview-frame">
+            <canvas id="targetPreview" width="420" height="420"></canvas>
+          </div>
+
+          <div class="panel-actions">
+            <label class="secondary-button file-label">
+              <input id="targetUpload" type="file" accept="image/*" capture="user">
+              Upload
+            </label>
+            <button class="ghost-button" data-open-camera="target">Use Camera</button>
+            <button class="ghost-button" data-clear-slot="target">Clear</button>
+          </div>
+
+          <p class="panel-help">The app auto-crops around the detected face before morphing.</p>
+        </article>
+      </section>
+
+      <section class="panel camera-panel hidden" id="cameraPanel">
+        <div class="panel-header compact">
+          <div>
+            <p class="section-kicker">Camera</p>
+            <h2 id="cameraTitle">Live Face Tracking</h2>
+          </div>
+          <span id="cameraSlotChip" class="slot-chip">Waiting</span>
+        </div>
+
+        <div class="camera-frame">
+          <video id="cameraFeed" class="camera-source" playsinline autoplay muted></video>
+          <canvas id="cameraPreviewCanvas" width="640" height="640"></canvas>
+        </div>
+
+        <p id="cameraStatus" class="panel-help">Open the camera to start live face tracking.</p>
+
+        <div class="panel-actions">
+          <button id="toggleTrackingButton" class="primary-button">Start Live Tracking</button>
+          <button id="captureButton" class="secondary-button">Capture Still</button>
+          <button id="closeCameraButton" class="ghost-button">Close Camera</button>
+        </div>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Result</p>
+            <h2>Morphed Face</h2>
+          </div>
+          <div id="transportSummary" class="transport-summary">Transport plan not computed yet.</div>
+        </div>
+
+        <div class="output-frame">
+          <canvas id="outputCanvas" width="512" height="512"></canvas>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Control points</span>
+            <strong id="metricPoints">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">LP iterations</span>
+            <strong id="metricIterations">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Active transports</span>
+            <strong id="metricActivePairs">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Mean drift</span>
+            <strong id="metricDrift">0 px</strong>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
