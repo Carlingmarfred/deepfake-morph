@@ -40,37 +40,6 @@ You can also run the server directly:
 powershell -ExecutionPolicy Bypass -NoProfile -File .\server.ps1 -Port 8080
 ```
 
-## How it works
-
-1. Load or capture two face images.
-2. The app detects face landmarks and crops both images to a shared square framing.
-3. It samples a curated subset of facial control points plus border anchors.
-4. It builds a cost matrix from normalized geometry, semantic region order, and local color descriptors.
-5. It solves the balanced transport problem exactly with a from-scratch transportation simplex.
-6. It converts the transport plan into structure-aware target control points.
-7. It triangulates the intermediate face and warps both images into that shared mesh.
-8. It blends the warped faces into the final morph and lets you download a PNG.
-
-## Publish to GitHub
-
-This folder is ready to become its own GitHub repository.
-
-If you want this project to live as a standalone repo, the cleanest approach is:
-
-1. Put the contents of this folder in their own directory or repository root.
-2. Run these commands inside that folder:
-
-```powershell
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-git push -u origin main
-```
-
-After the first push, you can enable GitHub Pages in the repository settings, or let the included workflow deploy the site automatically from the `main` branch.
-
 ## Notes
 
 - The first page load downloads MediaPipe runtime assets and the face landmark model from public CDNs, so an internet connection is required.
